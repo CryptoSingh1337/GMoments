@@ -1,9 +1,68 @@
-import d3dshot
+import sys
 import os
 import time
+import d3dshot
 from PIL import Image
 import ffmpeg
 from memory_profiler import profile
+
+"""
+returns the platform.
+Possible values:
+    Linux -> linux
+    Windows -> win32
+    macOS -> darwin            
+"""
+
+
+def get_operating_system():
+    return sys.platform
+
+
+"""
+returns the path of the temporary directory for a specific platform.
+"""
+
+
+def get_parent_dir():
+    tempDir = ''
+    platform = get_operating_system()
+    if (platform.startswith('linux')):
+        tempDir = '/tmp'
+    elif (platform.startswith('win32')):
+        tempDir = os.environ.get('TMP')
+    elif (platform.startswith('darwin')):
+        tempDir = os.environ.get('TMPDIR')
+    else:
+        raise Exception('Unknown OS')
+    return tempDir
+
+
+"""
+creates the directory for frames and window-capture in the temporary directory.
+"""
+
+
+def make_directoy(parent: str, directory_name: str):
+    path = os.path.join(parent, directory_name)
+    if (not os.path.isdir(path)):
+        os.mkdir(path)
+
+
+"""
+Initialize the setup for directories.
+"""
+
+
+def setup_environment():
+    tempDir = get_parent_dir()
+    make_directoy(tempDir, 'window-capture')
+    make_directoy(os.path.join(tempDir, 'window-capture'), 'frames')
+
+
+"""
+Check if the display adapter with the corresponding index is valid or not.
+"""
 
 
 def validate_display_index(displays, index: int):
@@ -12,8 +71,9 @@ def validate_display_index(displays, index: int):
     return True
 
 
-def validate_baseDir(baseDir: str):
-    return os.path.exists(baseDir)
+"""
+Generate a list from 0 to 360 (in a 15 sec. video, there will be only 360 frames at 24 fps).
+"""
 
 
 def generate_list(start, end, interval):
@@ -26,22 +86,23 @@ class ScreenCapture:
     resolution = (0, 0)
     d3d_instance: object = None
     fps: int = 24
-    baseDir: str = ''
-    render_video: str = ''
-    render_fps: int = 20
+    working_dir: str = ''
+    render_frames_dir: str = ''
+    render_video_name: str = ''
+    render_fps: int = 24
     frame_buffer_size: int = 360
     frame_indices: list = None
     frame_buffer: list = None
 
-    def __init__(self, baseDir: str):
+    def __init__(self):
         self.d3d_instance = d3dshot.create(
             capture_output='numpy', frame_buffer_size=self.frame_buffer_size)
         self.refresh_resolution()
-        if(validate_baseDir(baseDir)):
-            self.baseDir = baseDir
-        else:
-            raise Exception('Invalid Base directory path!')
-        self.render_video = 'render.mp4'
+        self.working_dir = get_parent_dir()
+        self.working_dir = os.path.join(self.working_dir, 'window-capture')
+        self.render_frames_dir = os.path.join(self.working_dir, 'frames')
+        setup_environment()
+        self.render_video_name = 'render.mp4'
         self.frame_indices = generate_list(0, self.frame_buffer_size, 1)
         self.start_capture()
 
@@ -74,8 +135,15 @@ class ScreenCapture:
         self.d3d_instance.stop()
 
     def get_frames_buffer(self):
+        """
+        Returns a stack from the frame buffer which is based on deque.
+        Check <https://github.com/SerpentAI/D3DShot#tldr-quick-code-samples>
+        """
         self.frame_buffer = self.d3d_instance.get_frame_stack(
             frame_indices=self.frame_indices, stack_dimension='first')
+        # Here we are reversing the stack because the last frame will be on the top.
+        # So that our video will get render in progressive order.
+        self.frame_buffer = self.frame_buffer[::-1]
 
     @profile
     def save_buffer(self):
@@ -83,19 +151,21 @@ class ScreenCapture:
         i = 0
         for image in self.frame_buffer:
             Image.fromarray(image).save(
-                fp=f'{self.baseDir}/{i}.jpeg', format='jpeg')
+                fp=f'{self.render_frames_dir}/{i}.jpeg', format='jpeg')
             i += 1
 
     @profile
     def render_video(self):
         self.stop_capture()
         self.save_buffer()
-        (
-            ffmpeg
-            .input(f'{self.baseDir}/%d.jpeg', framerate=self.render_fps)
-            .output(f'{self.render_video}')
-            .run()
-        )
+        stream = ffmpeg.input(
+            f'{self.render_frames_dir}/%d.jpeg', framerate=self.render_fps)
+        stream = ffmpeg.output(stream,
+                               f'{self.working_dir}/{self.render_video_name}')
+        # overwrite_output renders the video with -y option so that it will not asks
+        # user to overwrite the already existing video with the same name.
+        stream = ffmpeg.overwrite_output(stream)
+        ffmpeg.run(stream)
         self.d3d_instance._reset_frame_buffer()
 
     def get_screenshot(self):
@@ -104,12 +174,17 @@ class ScreenCapture:
 
 if __name__ == '__main__':
     start = time.time()
-    sc = ScreenCapture('frames')
-    # print(sc.get_displays())
-    # sc.change_display(0)
-    # print(sc.get_width, sc.get_height)
+    sc = ScreenCapture()
     time.sleep(20)
     sc.render_video()
     end = time.time()
     print(f"Time taken: {end - start}")
     print('done')
+
+# Test method to display the info about the display adapter and size of the display
+
+
+def info():
+    print(sc.get_displays())
+    sc.change_display(0)
+    print(sc.get_width, sc.get_height)
