@@ -1,6 +1,5 @@
 <p align="center">
-  <a href="" rel="noopener">
- <img width=200px height=200px src="assets/logo/logo.png" alt="Project logo"></a>
+ <img width=200px height=200px src="assets/logo/logo.png" alt="Project logo">
 </p>
 
 <h3 align="center">GMoments</h3>
@@ -10,7 +9,7 @@
 [![Status](https://img.shields.io/badge/status-active-success.svg)]()
 [![GitHub Issues](https://img.shields.io/github/issues/CryptoSingh1337/GMoments)](https://github.com/CryptoSingh1337/GMomemts/issues)
 [![GitHub Pull Requests](https://img.shields.io/github/issues-pr/CryptoSingh1337/GMoments)](https://github.com/CryptoSingh1337/GMomemts/pulls)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 
 </div>
 
@@ -23,83 +22,45 @@
 ## 📝 Table of Contents
 
 - [About](#about)
-- [Getting Started](#getting_started)
+- [Features](#features)
 - [Deployment](#deployment)
-- [Usage](#usage)
+- [Application Flow](#application_flow)
 - [Built Using](#built_using)
-- [TODO](../TODO.md)
-- [Contributing](../CONTRIBUTING.md)
 - [Authors](#authors)
 - [Acknowledgments](#acknowledgement)
 
 ## 🧐 About <a name = "about"></a>
 
-GMoments saves your last 15 seconds gameplay and uploads the clip to your account. You can share this clip with your friends or just keep the clips for memories.
+GMoments saves your last few seconds (15-20 sec) gameplay and uploads the clip to your account. You can share this clip with your friends or just keep the clips for memories.
 
-## 🏁 Getting Started <a name = "getting_started"></a>
+## 🤖 Features <a name = "features"></a>
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See [deployment](#deployment) for notes on how to deploy the project on a live system.
-
-### Prerequisites
-
-What things you need to install the software and how to install them.
-
-```
-Give examples
-```
-
-### Installing
-
-A step by step series of examples that tell you how to get a development env running.
-
-Say what the step will be
-
-```
-Give the example
-```
-
-And repeat
-
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo.
-
-## 🔧 Running the tests <a name = "tests"></a>
-
-Explain how to run the automated tests for this system.
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-## 🎈 Usage <a name="usage"></a>
-
-Add notes about how to use the system.
+- Capture screen using Window Desktop Duplication API which is the faster method to capture the screen in windows.
+- Render the video from 360 frames at 18-24 fps at the native resolution of display adapter.
+- Supports hotkeys for rendering the video without minimizing the game window.
 
 ## 🚀 Deployment <a name = "deployment"></a>
 
-Add additional notes about how to deploy this on a live system.
+[Preview](/)
+
+### Demo GIF
+
+![Placeholder](https://tenor.com/F4ci.gif)
+
+## 🗯 Application Flow <a name = "application_flow"></a>
+
+<img src="assets/application_flow/desktop_application_flow.png" alt="desktop application flow">
+
+### **For web interface:**
+
+We will be having a website where register/non-register user can view the clips. User can register himself in order to upload the clips from desktop client to the web.
+User will recieve a token similar to JWT token which will be a self contained token containing the required information about the user.
 
 ## ⛏️ Built Using <a name = "built_using"></a>
 
-- [MongoDB](https://www.mongodb.com/) - Database
-- [Express](https://expressjs.com/) - Server Framework
-- [VueJs](https://vuejs.org/) - Web Framework
-- [NodeJs](https://nodejs.org/en/) - Server Environment
+- Client - Python, [D3DShot (Window Desktop Duplication API)](https://github.com/SerpentAI/d3dshot), [ffmpeg](https://github.com/kkroening/ffmpeg-python)
+- Frontend - Javascript, [Nuxt](https://github.com/nuxt/nuxt.js), [Vuetify](https://github.com/vuetifyjs/vuetify)
+- Backend - Java, Spring boot, MongoDB Atlas, Amazon S3, AWS Lambda
 
 ## ✍️ Authors <a name = "authors"></a>
 
@@ -107,5 +68,5 @@ Add additional notes about how to deploy this on a live system.
 
 ## 🎉 Acknowledgements <a name = "acknowledgement"></a>
 
-- Hat tip to anyone whose code was used
 - Inspiration: Glip
+- Stack Overflow (Bugs are the part of Development process😀)
