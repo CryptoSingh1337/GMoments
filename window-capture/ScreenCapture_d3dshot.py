@@ -2,16 +2,14 @@ import sys
 import os
 import time
 import d3dshot
+from pynput import keyboard
 from PIL import Image
 import ffmpeg
-from memory_profiler import profile
 
 """
 returns the platform.
 Possible values:
-    Linux -> linux
     Windows -> win32
-    macOS -> darwin            
 """
 
 
@@ -27,14 +25,10 @@ returns the path of the temporary directory for a specific platform.
 def get_parent_dir():
     tempDir = ''
     platform = get_operating_system()
-    if (platform.startswith('linux')):
-        tempDir = '/tmp'
-    elif (platform.startswith('win32')):
+    if (platform.startswith('win32')):
         tempDir = os.environ.get('TMP')
-    elif (platform.startswith('darwin')):
-        tempDir = os.environ.get('TMPDIR')
     else:
-        raise Exception('Unknown OS')
+        raise Exception('OS not supported')
     return tempDir
 
 
@@ -89,10 +83,12 @@ class ScreenCapture:
     working_dir: str = ''
     render_frames_dir: str = ''
     render_video_name: str = ''
-    render_fps: int = 24
+    render_fps: int = 15
     frame_buffer_size: int = 360
     frame_indices: list = None
     frame_buffer: list = None
+    key_pressed: bool = False
+    timer: object = None
 
     def __init__(self):
         self.d3d_instance = d3dshot.create(
@@ -145,7 +141,6 @@ class ScreenCapture:
         # So that our video will get render in progressive order.
         self.frame_buffer = self.frame_buffer[::-1]
 
-    @profile
     def save_buffer(self):
         self.get_frames_buffer()
         i = 0
@@ -154,32 +149,55 @@ class ScreenCapture:
                 fp=f'{self.render_frames_dir}/{i}.jpeg', format='jpeg')
             i += 1
 
-    @profile
     def render_video(self):
-        self.stop_capture()
-        self.save_buffer()
-        stream = ffmpeg.input(
-            f'{self.render_frames_dir}/%d.jpeg', framerate=self.render_fps)
-        stream = ffmpeg.output(stream,
-                               f'{self.working_dir}/{self.render_video_name}')
-        # overwrite_output renders the video with -y option so that it will not asks
-        # user to overwrite the already existing video with the same name.
-        stream = ffmpeg.overwrite_output(stream)
-        ffmpeg.run(stream)
-        self.d3d_instance._reset_frame_buffer()
+        if (not self.key_pressed):
+            print('Rendering video.....')
+            self.stop_capture()
+            self.toggle_key_pressed()
+            start = time.time()
+            self.save_buffer()
+            stream = ffmpeg.input(
+                f'{self.render_frames_dir}/%d.jpeg', framerate=self.render_fps)
+            stream = ffmpeg.output(stream,
+                                   f'{self.working_dir}/{self.render_video_name}')
+            # overwrite_output renders the video with -y option so that it will not asks
+            # user to overwrite the already existing video with the same name.
+            stream = ffmpeg.overwrite_output(stream)
+            ffmpeg.run(stream)
+            end = time.time()
+            self.d3d_instance._reset_frame_buffer()
+            print(f'Time taken: {end - start}')
+            self.toggle_key_pressed()
+        else:
+            print('Hotkey is on cooldown')
+
+    def get_frame_size(self):
+        frame = self.d3d_instance.get_latest_frame()
+        r, c, n = frame.shape
+        # Since frame contains the height * width * 3 dimension matrix
+        # and each of cell is numpy.uint8 which is of 1 byte in size
+        print(f'{(r * c * n) / 1000000} MB')
 
     def get_screenshot(self):
         self.d3d_instance.screenshot_to_disk()
 
+    def toggle_key_pressed(self):
+        self.key_pressed = not self.key_pressed
+
+    def terminate(self):
+        self.stop_capture()
+        sys.exit(0)
+
 
 if __name__ == '__main__':
-    start = time.time()
+    print('GMoments started.....')
     sc = ScreenCapture()
-    time.sleep(20)
-    sc.render_video()
-    end = time.time()
-    print(f"Time taken: {end - start}")
-    print('done')
+    with keyboard.GlobalHotKeys({
+        '<ctrl>+<shift>+a': sc.render_video,
+        '<alt>+q': sc.terminate
+    }) as h:
+        h.join()
+
 
 # Test method to display the info about the display adapter and size of the display
 
