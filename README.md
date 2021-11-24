@@ -8,8 +8,9 @@
 
 [![Status](https://img.shields.io/badge/status-active-success.svg)]()
 [![GitHub Issues](https://img.shields.io/github/issues/CryptoSingh1337/GMoments)](https://github.com/CryptoSingh1337/GMomemts/issues)
-[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/CryptoSingh1337/GMoments)](https://github.com/CryptoSingh1337/GMomemts/pulls)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/CryptoSingh1337/GMoments?color=red)](https://github.com/CryptoSingh1337/GMomemts/pulls)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
+[![Platform](https://img.shields.io/badge/python-3.8.x-lightgrey?logo=python)]()
 
 </div>
 
@@ -45,7 +46,7 @@ GMoments saves your last few seconds (15-20 sec) gameplay and uploads the clip t
 
 ### Demo GIF
 
-![Placeholder](https://tenor.com/F4ci.gif)
+![Placeholder](assets/gif/placeholder.gif)
 
 ## 🗯 Application Flow <a name = "application_flow"></a>
 
