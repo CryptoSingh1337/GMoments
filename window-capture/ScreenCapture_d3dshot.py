@@ -83,7 +83,7 @@ class ScreenCapture:
     working_dir: str = ''
     render_frames_dir: str = ''
     render_video_name: str = ''
-    render_fps: int = 15
+    render_fps: int = 24
     frame_buffer_size: int = 360
     frame_indices: list = None
     frame_buffer: list = None
