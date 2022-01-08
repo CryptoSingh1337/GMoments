@@ -2,7 +2,7 @@ import sys
 import os
 import time
 import d3dshot
-from pynput import keyboard
+import keyboard
 from PIL import Image
 import ffmpeg
 
@@ -100,7 +100,6 @@ class ScreenCapture:
         setup_environment()
         self.render_video_name = 'render.mp4'
         self.frame_indices = generate_list(0, self.frame_buffer_size, 1)
-        self.start_capture()
 
     @property
     def get_width(self):
@@ -125,9 +124,11 @@ class ScreenCapture:
         self.resolution = (self.width, self.height)
 
     def start_capture(self):
+        print("Start capturing...")
         self.d3d_instance.capture(target_fps=self.fps)
 
     def stop_capture(self):
+        print("Stop capturing...")
         self.d3d_instance.stop()
 
     def get_frames_buffer(self):
@@ -151,9 +152,9 @@ class ScreenCapture:
 
     def render_video(self):
         if (not self.key_pressed):
-            print('Rendering video.....')
+            print('Rendering video...')
             self.stop_capture()
-            self.toggle_key_pressed()
+            self.lockKeyPress()
             start = time.time()
             self.save_buffer()
             stream = ffmpeg.input(
@@ -167,9 +168,9 @@ class ScreenCapture:
             end = time.time()
             self.d3d_instance._reset_frame_buffer()
             print(f'Time taken: {end - start}')
-            self.toggle_key_pressed()
+            self.releaseKeyPress()
         else:
-            print('Hotkey is on cooldown')
+            print('Video is being rendered...')
 
     def get_frame_size(self):
         frame = self.d3d_instance.get_latest_frame()
@@ -181,28 +182,17 @@ class ScreenCapture:
     def get_screenshot(self):
         self.d3d_instance.screenshot_to_disk()
 
-    def toggle_key_pressed(self):
-        self.key_pressed = not self.key_pressed
+    def lockKeyPress(self):
+        self.key_pressed = True
 
-    def terminate(self):
-        self.stop_capture()
-        sys.exit(0)
+    def releaseKeyPress(self):
+        self.key_pressed = False
 
 
-if __name__ == '__main__':
-    print('GMoments started.....')
+if __name__ == "__main__":
+    print("GMoments started.....")
     sc = ScreenCapture()
-    with keyboard.GlobalHotKeys({
-        '<ctrl>+<shift>+a': sc.render_video,
-        '<alt>+q': sc.terminate
-    }) as h:
-        h.join()
-
-
-# Test method to display the info about the display adapter and size of the display
-
-
-def info():
-    print(sc.get_displays())
-    sc.change_display(0)
-    print(sc.get_width, sc.get_height)
+    keyboard.add_hotkey("alt + 1", sc.start_capture)
+    keyboard.add_hotkey("alt + 2", sc.render_video)
+    keyboard.add_hotkey("alt + 3", sc.get_frame_size)
+    keyboard.wait("alt + 4")
