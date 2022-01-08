@@ -1,3 +1,3 @@
-ffmpeg-python
-d3dshot
-pynput
+ffmpeg-python==0.2.0
+d3dshot==0.1.5
+keyboard==0.13.5
